@@ -44,6 +44,19 @@ be in the server path npm install then  npm start
 npm start 
 ```
 
+
+ # Requirements
+ Node exepress
+react
+mysql
+bootstrap
+bcrypt - Token
+Heroku​
+
+
+
+
+
 # References
 https://reactjs.org/
 https://nodejs.org/en/
