@@ -3,11 +3,11 @@ import axios from "axios";
 import { withRouter } from "react-router-dom" ;
 import Footer from './Footer';
 import { storage } from "./firebase.js";
-
+import Navbar_Login from "./Navbar_Login"
 
  class AddItems extends Component {
   constructor(props) {
-    super(props);
+    super(props)
 
     //Defining the "this" in the functions using .bind method
     this.onChangeItemName = this.onChangeItemName.bind(this);
@@ -25,8 +25,32 @@ import { storage } from "./firebase.js";
       image:null,
       url :'',
       progress:0,
+      phone:'',
+      
+
     }
   }
+
+//mount the user data so we add the username and phone number
+
+componentDidMount() {
+  axios.get("http://localhost:3000/addUser/")   
+     .then( res => {
+        //  this.setState({phone :res.data.phone})
+       var phones=0
+        for (var i = 0 ; i< res.data.length;i++){
+          if (res.data[i].username=== localStorage.getItem('username')){
+            phones=res.data[i].phone
+          }
+              
+        }
+        this.setState({phone: phones})
+       
+     })
+     .catch((error) => {
+         console.log(error);
+     })
+}
 
   //List of category
   //Event Handlers:
@@ -34,6 +58,7 @@ import { storage } from "./firebase.js";
     this.setState({
       itemName: e.target.value
     });
+
   }
 
   onChangeCategory(e) {
@@ -64,50 +89,48 @@ import { storage } from "./firebase.js";
     }
   
 }
-  // it handles the upload of the picture in the firbase
-  handleUpload () {
-    var uploadTask = storage.ref(`images/${this.state.image.name}`).put(this.state.image);
-      uploadTask.on(
-        "state_changed",
-        snapshot => {
-          var progress = Math.round(
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+ // it handles the upload of the picture in the firbase
+ handleUpload (e) {
+  e.preventDefault();
+  var uploadTask = storage.ref(`images/${this.state.image.name}`).put(this.state.image);
+    uploadTask.on(
+      "state_changed",
+      snapshot => {
+        var progress = Math.round(
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+        );
+        this.setState({
+          progress:progress})
+        },
+        error => {
+        console.log(error);
+       },
+        () => {
+          storage
+          .ref("images")
+          .child(this.state.image.name)
+          .getDownloadURL()
+          .then(url => {
+            this.setState({
+              url : url
+          })
+          });
+          }
           );
-          this.setState({
-            progress:progress})
-          },
-          error => {
-          console.log(error);
-         },
-          () => {
-            storage
-            .ref("images")
-            .child(this.state.image.name)
-            .getDownloadURL()
-            .then(url => {
-              this.setState({
-                url : url
-            })
-            });
-
-            }
-
-            );
-            
-         }
+       }
 
   onSubmit(e) {
-    console.log(this.state.url+"hiiiiiii")
+
     e.preventDefault();
     const item = {
       userName:localStorage.getItem('username'),
       itemName: this.state.itemName,
       category: this.state.category,
+      phonenumber:this.state.phone,
       description: this.state.description,
       type:this.state.type,
       image: this.state.url,
-      
-      
+
     }
 
     console.log(item);
@@ -115,12 +138,13 @@ import { storage } from "./firebase.js";
     axios.post("http://localhost:3000/addItems/add", item)
       .then(res => console.log(res.data));
 
-    window.location = '/ItemsList'
+    window.location = '/ItemsList2'
   }
 
   render() {
     return (
       <div>
+        <Navbar_Login/>
         <br />
         <div className = "container">
        
@@ -199,7 +223,7 @@ import { storage } from "./firebase.js";
                 <div className = "col">
                             <label>Image</label>
                            <div  id='image' > <img src={this.state.url || "http://via.placeholder.com/50*50"} 
-                            alt="firebase"  /></div> 
+                              /></div> 
                            <input  type="file" onChange={this.handleChangeImage.bind(this)} className="btn btn-deep-orange darken-4" />
                            <button  onClick={this.handleUpload.bind(this)} className="btn btn-deep-orange darken-4">Upload</button>
                            </div>
